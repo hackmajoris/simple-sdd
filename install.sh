@@ -255,9 +255,7 @@ install_file() {
   local tmp
   tmp="$(mktemp)"
   curl -sSL "$BASE_URL/$src" -o "$tmp"
-  # Prepend a version stamp so /simple-sdd-help can check for staleness.
   {
-    echo "<!-- simple-sdd: ${SDD_VERSION} -->"
     cat "$tmp"
   } > "$dest"
   rm -f "$tmp"
