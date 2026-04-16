@@ -45,7 +45,17 @@ Depending on the tool, commands and templates are installed under:
 | GitHub Copilot | `.github/prompts/` | `.github/prompts/` | `.github/copilot-instructions.md` |
 | OpenCode | `.opencode/commands/` | `.opencode/templates/` | `RULES.md` |
 
-Commands that are already installed are skipped. Config injection is idempotent. Run the install command once per project.
+Commands are always overwritten with the latest version. Config injection is idempotent (the section is only added once).
+
+---
+
+## Update
+
+Re-run the install command with the same `--tool` flag. Existing files are overwritten with the latest version.
+
+```bash
+curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/install.sh | bash -s -- --tool claude
+```
 
 ---
 
@@ -64,7 +74,7 @@ SDD follows a fixed lifecycle. Each step is a single slash command:
 /simple-sdd-help                ← quick command reference
 ```
 
-Between every command, Claude prompts you to run `/clear`. This keeps each session focused on a single task and prevents context bleed across tasks.
+Between every command, LLM prompts you to run `/clear`. This keeps each session focused on a single task and prevents context bleed across tasks.
 
 ---
 
@@ -504,13 +514,5 @@ curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/ins
 ```
 
 ---
-
-## Update
-
-Re-run the install command with the same `--tool` flag. Existing files are skipped — delete a file first if you want to overwrite it with the latest version.
-
-```bash
-curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/install.sh | bash -s -- --tool claude
-```
 
 ---

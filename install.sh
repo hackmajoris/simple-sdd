@@ -89,12 +89,8 @@ mkdir -p "$TEMPLATES_DIR"
 install_file() {
   local src="$1"
   local dest="$2"
-  if [ -f "$dest" ]; then
-    echo "  skipped: $dest (already exists)"
-  else
-    curl -sSL "$BASE_URL/$src" -o "$dest"
-    echo "  installed: $dest"
-  fi
+  curl -sSL "$BASE_URL/$src" -o "$dest"
+  echo "  installed: $dest"
 }
 
 echo "Installing simple-sdd for $TOOL..."

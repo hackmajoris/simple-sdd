@@ -20,13 +20,13 @@ jobs:
         with:
           files: |
             install.sh
-            .claude/commands/simple-sdd-setup.md
-            .claude/commands/simple-sdd-feature-new.md
-            .claude/commands/simple-sdd-feature-implement.md
-            .claude/commands/simple-sdd-feature-update.md
-            .claude/commands/simple-sdd-feature-complete.md
-            .claude/commands/simple-sdd-feature-status.md
-            .claude/commands/simple-sdd-constitution-sync.md
-            .claude/commands/simple-sdd-help.md
-            .claude/templates/plan-template.md
+            src/commands/simple-sdd-setup.md
+            src/commands/simple-sdd-feature-new.md
+            src/commands/simple-sdd-feature-implement.md
+            src/commands/simple-sdd-feature-update.md
+            src/commands/simple-sdd-feature-complete.md
+            src/commands/simple-sdd-feature-status.md
+            src/commands/simple-sdd-constitution-sync.md
+            src/commands/simple-sdd-help.md
+            src/templates/plan-template.md
           generate_release_notes: true
