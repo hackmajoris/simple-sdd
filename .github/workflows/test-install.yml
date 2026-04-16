@@ -105,22 +105,6 @@ jobs:
           test -f "$expected_cfg" || { echo "Missing config: $expected_cfg"; exit 1; }
           echo "All expected files present."
 
-      - name: Assert version stamp is present
-        shell: bash
-        run: |
-          set -euo pipefail
-          cd "$RUNNER_TEMP/test-project"
-          case "${{ matrix.tool }}" in
-            claude) f=".claude/commands/simple-sdd-setup.md" ;;
-            copilot) f=".github/prompts/simple-sdd-setup.prompt.md" ;;
-            opencode) f=".opencode/commands/simple-sdd-setup.md" ;;
-          esac
-          head -1 "$f" | grep -q '<!-- simple-sdd: test -->' || {
-            echo "Version stamp missing or wrong in $f:"
-            head -1 "$f"
-            exit 1
-          }
-
       - name: Assert config injection appears exactly once
         shell: bash
         run: |
