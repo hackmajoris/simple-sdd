@@ -514,13 +514,3 @@ curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/ins
 ```
 
 ---
-
-## Release
-
-Tag a version to trigger a GitHub release and publish updated command files:
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-   
