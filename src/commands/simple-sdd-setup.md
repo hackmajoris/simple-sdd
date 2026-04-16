@@ -6,6 +6,16 @@ type: skill
 
 You are setting up Spec Driven Development (SDD) for this project.
 
+## Config values used in this command
+
+At the start of every Bash block below, source `specs/.sddrc` if it exists so user overrides take effect. Defaults: `SDD_SPECS_DIR=specs`, `SDD_DEFAULT_BRANCH=main`, `SDD_COMMIT_PREFIX_CHORE=chore`. Example prelude:
+
+```bash
+[ -f specs/.sddrc ] && . specs/.sddrc
+SPECS_DIR="${SDD_SPECS_DIR:-specs}"
+CHORE="${SDD_COMMIT_PREFIX_CHORE:-chore}"
+```
+
 ## Step 1 — Validate git state
 
 Run `git rev-parse --is-inside-work-tree 2>/dev/null || echo not-a-repo` — if `not-a-repo`, stop: "This directory is not a git repository. Run `git init` first."
@@ -16,7 +26,9 @@ Run `git status --porcelain` — if not empty, stop: "You have uncommitted chang
 
 Use the Bash tool to run:
 ```bash
-ls specs/mission.md specs/tech-stack.md 2>/dev/null
+[ -f specs/.sddrc ] && . specs/.sddrc
+SPECS_DIR="${SDD_SPECS_DIR:-specs}"
+ls "$SPECS_DIR/mission.md" "$SPECS_DIR/tech-stack.md" 2>/dev/null
 ```
 
 If both files exist, tell the user:
@@ -70,7 +82,7 @@ Wait for the user's answers before proceeding.
 
 ### Phase 3 — Write spec files
 
-Use the Bash tool to run `mkdir -p specs`, then use the Write tool to write each file.
+Use the Bash tool to run `mkdir -p "$SPECS_DIR"` (after sourcing `.sddrc` if present), then use the Write tool to write each file into `$SPECS_DIR/`. The examples below assume the default `specs/`.
 
 **specs/mission.md**
 ```markdown
@@ -98,6 +110,27 @@ Use the Bash tool to run `mkdir -p specs`, then use the Write tool to write each
 
 ## Constraints & Preferences
 [answer from Phase 2, Q3]
+```
+
+### Phase 3b — Write the config file
+
+If `specs/.sddrc` does not exist, use the Write tool to create it with every knob commented out. This gives the user a ready reference for customization without changing any defaults.
+
+**specs/.sddrc**
+```sh
+# simple-sdd configuration — sourced by every command. Shell syntax (KEY=VALUE).
+# All values are optional; defaults shown below.
+
+# SDD_SPECS_DIR=specs            # where spec directories live
+# SDD_DEFAULT_BRANCH=main        # default branch (auto-detected via origin/HEAD first)
+# SDD_TEMPLATE_PATH=.claude/templates/plan-template.md
+# SDD_USE_WORKTREES=false        # set true to create a git worktree per feature
+# SDD_WORKTREE_DIR=..            # parent dir for worktrees when SDD_USE_WORKTREES=true
+
+# Commit prefix overrides (for teams with conventional-commits conventions):
+# SDD_COMMIT_PREFIX_CHORE=chore
+# SDD_COMMIT_PREFIX_FEAT=feat
+# SDD_COMMIT_SCOPE_FORMAT=({{branch}})   # empty string disables the (scope) suffix
 ```
 
 ---
@@ -140,7 +173,7 @@ Wait for the user's answers before proceeding.
 
 ### Phase 3 — Write spec files
 
-Use the Bash tool to run `mkdir -p specs`, then use the Write tool to write each file.
+Use the Bash tool to run `mkdir -p "$SPECS_DIR"` (after sourcing `.sddrc` if present), then use the Write tool to write each file into `$SPECS_DIR/`. The examples below assume the default `specs/`.
 
 **specs/mission.md**
 ```markdown
@@ -170,6 +203,8 @@ Use the Bash tool to run `mkdir -p specs`, then use the Write tool to write each
 [answer from Phase 2, Q3]
 ```
 
+Also write `specs/.sddrc` as described in the New Project Flow's **Phase 3b** above if it does not already exist.
+
 ---
 
 ## Completion
@@ -189,11 +224,14 @@ Take a look and confirm when ready — or let me know what to adjust."
 3. If the user confirms (yes / looks good / commit / etc.):
    Use the Bash tool to run:
    ```bash
-   git add specs/mission.md specs/tech-stack.md
-   git commit -m "chore: add SDD spec files"
+   [ -f specs/.sddrc ] && . specs/.sddrc
+   SPECS_DIR="${SDD_SPECS_DIR:-specs}"
+   CHORE="${SDD_COMMIT_PREFIX_CHORE:-chore}"
+   git add "$SPECS_DIR/mission.md" "$SPECS_DIR/tech-stack.md" "$SPECS_DIR/.sddrc"
+   git commit -m "$CHORE: add SDD spec files"
    ```
    Then tell the user:
-   "Committed. Context should be cleared for best results before the next step. Run `/clear` when ready — or type 'skip' to continue in this session."
+   "Committed. Recommended: run `/clear` for a fresh context before the next step. Type `skip` to continue in this session."
 
 4. If the user requests changes:
    Make the requested edits to the spec files, then return to step 2.

@@ -15,18 +15,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Generate SHA256SUMS
+        run: |
+          set -euo pipefail
+          # Stage release artifacts in a flat directory so checksums reference
+          # just the filename (matching how they're downloaded from the release page).
+          mkdir -p _release
+          cp install.sh _release/
+          cp src/commands/*.md _release/
+          cp src/templates/plan-template.md _release/
+          cd _release
+          sha256sum * > SHA256SUMS
+          echo "--- SHA256SUMS ---"
+          cat SHA256SUMS
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            install.sh
-            src/commands/simple-sdd-setup.md
-            src/commands/simple-sdd-feature-new.md
-            src/commands/simple-sdd-feature-implement.md
-            src/commands/simple-sdd-feature-update.md
-            src/commands/simple-sdd-feature-complete.md
-            src/commands/simple-sdd-feature-status.md
-            src/commands/simple-sdd-constitution-sync.md
-            src/commands/simple-sdd-help.md
-            src/templates/plan-template.md
+            _release/install.sh
+            _release/simple-sdd-setup.md
+            _release/simple-sdd-feature-new.md
+            _release/simple-sdd-feature-implement.md
+            _release/simple-sdd-feature-update.md
+            _release/simple-sdd-feature-complete.md
+            _release/simple-sdd-feature-abandon.md
+            _release/simple-sdd-feature-status.md
+            _release/simple-sdd-constitution-sync.md
+            _release/simple-sdd-help.md
+            _release/plan-template.md
+            _release/SHA256SUMS
           generate_release_notes: true

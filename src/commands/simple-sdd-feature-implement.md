@@ -6,15 +6,28 @@ type: skill
 
 You are implementing the next task of the current in-progress feature.
 
+## Config values used in this command
+
+At the start of every Bash block below, source `specs/.sddrc` if present. Values and defaults:
+
+```bash
+[ -f specs/.sddrc ] && . specs/.sddrc
+SPECS_DIR="${SDD_SPECS_DIR:-specs}"
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/origin/||')
+DEFAULT_BRANCH=${DEFAULT_BRANCH:-${SDD_DEFAULT_BRANCH:-main}}
+FEAT="${SDD_COMMIT_PREFIX_FEAT:-feat}"
+SCOPE_FORMAT="${SDD_COMMIT_SCOPE_FORMAT-({{branch}})}"
+```
+
 ## Step 1 — Validate git state
 
 Run `git rev-parse --is-inside-work-tree 2>/dev/null || echo not-a-repo` — if `not-a-repo`, stop: "This directory is not a git repository."
 
 ## Step 2 — Find in-progress feature spec
 
-Use the Bash tool to find all spec directories outside `specs/completed/`:
+Use the Bash tool to find all spec directories outside `$SPECS_DIR/completed/`:
 ```bash
-find specs -mindepth 1 -maxdepth 1 -type d ! -name completed 2>/dev/null
+find "$SPECS_DIR" -mindepth 1 -maxdepth 1 -type d ! -name completed 2>/dev/null
 ```
 
 If no directories are found, tell the user:
@@ -64,8 +77,9 @@ Then stop.
 
 **If resuming (some tasks already checked):** reconstruct context first — run:
 ```bash
-git log --oneline $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD develop 2>/dev/null)..HEAD
-git diff $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD develop 2>/dev/null)..HEAD --stat
+MERGE_BASE=$(git merge-base HEAD "$DEFAULT_BRANCH" 2>/dev/null || git merge-base HEAD main 2>/dev/null || git merge-base HEAD develop 2>/dev/null)
+git log --oneline "$MERGE_BASE"..HEAD
+git diff "$MERGE_BASE"..HEAD --stat
 ```
 
 Read silently and build a picture of what's been done before proceeding.
@@ -76,7 +90,7 @@ Always read:
 - `<spec-directory>/plan.md`
 - `<spec-directory>/requirements.md`
 
-On first run only (0 tasks done), also read `specs/tech-stack.md` for stack alignment. Skip `validation.md` and `specs/mission.md` — not needed at task level.
+On first run only (0 tasks done), also read `$SPECS_DIR/tech-stack.md` for stack alignment. Skip `validation.md` and `$SPECS_DIR/mission.md` — not needed at task level.
 
 ## Step 6 — Implement the next task
 
@@ -106,10 +120,14 @@ Once every item in the task is done:
 - Immediately proceed to the next unchecked task group and implement it (loop back to Step 6 for that task). Do not stop.
 
 **If the task produced code changes:**
-2. Commit all changes:
+2. Build the commit message using `FEAT` and `SCOPE_FORMAT`:
+   - If `SCOPE_FORMAT` is empty, the message is: `<FEAT>: complete task <N> — <task name>`
+   - Otherwise substitute `{{branch}}` with the branch name: e.g. `SCOPE_FORMAT="({{branch}})"` gives `<FEAT>(<branch-name>): complete task <N> — <task name>`.
+3. Commit all changes:
 ```bash
 git add .
-git commit -m "feat(<branch-name>): complete task <N> — <task name>"
+SCOPE=$(printf '%s' "$SCOPE_FORMAT" | sed "s/{{branch}}/$(git rev-parse --abbrev-ref HEAD)/")
+git commit -m "${FEAT}${SCOPE}: complete task <N> — <task name>"
 ```
 
 ## Step 8 — Prompt for next session
@@ -124,7 +142,7 @@ grep -c "\- \[ \]" <spec-directory>/plan.md
 If tasks remain, tell the user:
 "Task <N> complete and committed.
 
-Run `/clear` then `/simple-sdd-feature-implement` to continue with the next task."
+Recommended: run `/clear` for a fresh context before the next `/simple-sdd-feature-implement`. Type `skip` to continue in this session."
 
 If all tasks are done, tell the user:
 "Task <N> complete and committed. All tasks done.

@@ -6,6 +6,16 @@ type: skill
 
 You are syncing the SDD constitution files after a feature or period of work.
 
+## Config values used in this command
+
+```bash
+[ -f specs/.sddrc ] && . specs/.sddrc
+SPECS_DIR="${SDD_SPECS_DIR:-specs}"
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/origin/||')
+DEFAULT_BRANCH=${DEFAULT_BRANCH:-${SDD_DEFAULT_BRANCH:-main}}
+CHORE="${SDD_COMMIT_PREFIX_CHORE:-chore}"
+```
+
 ## Step 1 — Validate git state
 
 Run `git rev-parse --is-inside-work-tree 2>/dev/null || echo not-a-repo` — if `not-a-repo`, stop: "This directory is not a git repository."
@@ -13,8 +23,8 @@ Run `git rev-parse --is-inside-work-tree 2>/dev/null || echo not-a-repo` — if 
 ## Step 2 — Read the constitution
 
 Read both files fully:
-- `specs/mission.md`
-- `specs/tech-stack.md`
+- `$SPECS_DIR/mission.md`
+- `$SPECS_DIR/tech-stack.md`
 
 If either file is missing, tell the user:
 "Constitution file not found: `<file>`. Run `/simple-sdd-setup` first."
@@ -24,16 +34,23 @@ Then stop.
 
 ### Find the reference feature
 
-Use the Bash tool to check for an in-progress feature:
+First, prefer the completed-specs index if present:
 ```bash
-find specs -mindepth 1 -maxdepth 1 -type d ! -name completed 2>/dev/null
+[ -f "$SPECS_DIR/completed/INDEX.md" ] && tail -1 "$SPECS_DIR/completed/INDEX.md"
+```
+
+The last line of `INDEX.md` names the most recently completed feature. If the index exists, use its last entry as the reference feature (unless an in-progress feature exists — that takes priority below).
+
+Check for an in-progress feature:
+```bash
+find "$SPECS_DIR" -mindepth 1 -maxdepth 1 -type d ! -name completed 2>/dev/null
 ```
 
 If one directory is found — use that as the reference feature.
 
-If none is found — use the most recently completed feature instead:
+If none is found and no `INDEX.md` entry was usable, fall back to scanning directly:
 ```bash
-ls -dt specs/completed/*/ 2>/dev/null | head -1
+ls -dt "$SPECS_DIR"/completed/*/ 2>/dev/null | head -1
 ```
 
 If still nothing, tell the user:
@@ -51,8 +68,9 @@ Read:
 
 Use the Bash tool to get a summary of what changed in the codebase:
 ```bash
-git log --oneline $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD develop 2>/dev/null || echo HEAD~10)..HEAD
-git diff $(git merge-base HEAD main 2>/dev/null || git merge-base HEAD develop 2>/dev/null || echo HEAD~10)..HEAD --stat
+MERGE_BASE=$(git merge-base HEAD "$DEFAULT_BRANCH" 2>/dev/null || git merge-base HEAD main 2>/dev/null || git merge-base HEAD develop 2>/dev/null || echo HEAD~10)
+git log --oneline "$MERGE_BASE"..HEAD
+git diff "$MERGE_BASE"..HEAD --stat
 ```
 
 Read silently. You are looking for:
@@ -109,8 +127,8 @@ Use the Edit tool to apply only the confirmed changes to `specs/mission.md` and/
 
 Then commit:
 ```bash
-git add specs/mission.md specs/tech-stack.md
-git commit -m "chore: sync constitution after <feature-name>"
+git add "$SPECS_DIR/mission.md" "$SPECS_DIR/tech-stack.md"
+git commit -m "$CHORE: sync constitution after <feature-name>"
 ```
 
 Tell the user:

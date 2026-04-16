@@ -6,15 +6,22 @@ type: skill
 
 You are reporting the status of the current in-progress feature.
 
+## Config values used in this command
+
+```bash
+[ -f specs/.sddrc ] && . specs/.sddrc
+SPECS_DIR="${SDD_SPECS_DIR:-specs}"
+```
+
 ## Step 1 — Validate git state
 
 Run `git rev-parse --is-inside-work-tree 2>/dev/null || echo not-a-repo` — if `not-a-repo`, stop: "This directory is not a git repository."
 
 ## Step 2 — Find in-progress feature spec
 
-Use the Bash tool to find all spec directories outside `specs/completed/`:
+Use the Bash tool to find all spec directories outside `$SPECS_DIR/completed/`:
 ```bash
-find specs -mindepth 1 -maxdepth 1 -type d ! -name completed 2>/dev/null
+find "$SPECS_DIR" -mindepth 1 -maxdepth 1 -type d ! -name completed 2>/dev/null
 ```
 
 If no directories are found, tell the user:

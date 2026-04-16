@@ -4,6 +4,20 @@ description: Shows all available simple-sdd commands, what they do, and when to 
 type: skill
 ---
 
+**Staleness check (run before printing the reference):**
+
+1. Read the first line of this file. If it's an HTML comment of the form `<!-- simple-sdd: vX.Y.Z -->`, remember the installed version. If not (or if the value is `latest` or `dev`), skip to step 3.
+2. Fetch the latest release tag:
+   ```
+   gh api repos/hackmajoris/simple-sdd/releases/latest --jq .tag_name 2>/dev/null \
+     || curl -sSL https://api.github.com/repos/hackmajoris/simple-sdd/releases/latest | grep -o '"tag_name": *"[^"]*"' | head -1 | sed 's/.*"\(v[^"]*\)"/\1/'
+   ```
+   If either command returns a tag and it differs from the installed version, print:
+   > "Your simple-sdd commands are from `<installed>`; the latest release is `<latest>`. Re-run the installer to update."
+3. Continue to print the reference below.
+
+---
+
 Tell the user the following, verbatim:
 
 ---
@@ -64,9 +78,17 @@ Reads the checkboxes in `plan.md` and prints a summary: tasks completed, tasks r
 
 ### `/simple-sdd-feature-complete`
 **Close a finished feature.**
-Verifies all checkboxes in `plan.md` and `validation.md` are ticked, moves the spec to `specs/completed/`, commits, and switches back to `main` or `develop`.
+Verifies all checkboxes in `plan.md` and `validation.md` are ticked, moves the spec to `specs/completed/`, commits, and prompts you to open a PR. Once the PR merges, re-run with `--cleanup` to remove the worktree (if any) and delete the branch.
 
 > Will stop if any boxes are unchecked — complete them manually first.
+
+---
+
+### `/simple-sdd-feature-abandon`
+**Abandon an in-progress feature.**
+Removes the feature's worktree (if any), deletes the branch, and drops the spec directory. Commits remain recoverable via `git reflog` for ~90 days. Double-confirmation is required.
+
+> Use this when you've decided the approach is wrong and want to start over cleanly.
 
 ---
 

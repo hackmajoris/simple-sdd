@@ -6,6 +6,18 @@ type: skill
 
 You are applying a change to the current in-progress feature.
 
+## Config values used in this command
+
+At the start of every Bash block below, source `specs/.sddrc` if present:
+
+```bash
+[ -f specs/.sddrc ] && . specs/.sddrc
+SPECS_DIR="${SDD_SPECS_DIR:-specs}"
+DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/origin/||')
+DEFAULT_BRANCH=${DEFAULT_BRANCH:-${SDD_DEFAULT_BRANCH:-main}}
+CHORE="${SDD_COMMIT_PREFIX_CHORE:-chore}"
+```
+
 ## Step 1 — Validate git state
 
 Run `git rev-parse --is-inside-work-tree 2>/dev/null || echo not-a-repo` — if `not-a-repo`, stop: "This directory is not a git repository."
@@ -14,10 +26,10 @@ Run `git rev-parse --is-inside-work-tree 2>/dev/null || echo not-a-repo` — if 
 
 Use the Bash tool to run:
 ```bash
-git rev-parse --abbrev-ref HEAD
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
 ```
 
-If the branch is `main` or `develop`, tell the user:
+If `$BRANCH` equals `$DEFAULT_BRANCH` (or the literal `main`/`develop`), tell the user:
 "You are on `<branch>`. Feature updates can only be done from a feature branch."
 Then stop.
 
@@ -27,7 +39,7 @@ Store the branch name.
 
 Use the Bash tool to run:
 ```bash
-ls -d specs/*<branch-name>* 2>/dev/null
+ls -d "$SPECS_DIR"/*"$BRANCH"* 2>/dev/null
 ```
 
 If no directory is found, tell the user:
@@ -89,7 +101,7 @@ If confirmed:
 - Use the Bash tool to commit the spec changes:
 ```bash
 git add <spec-directory>/
-git commit -m "chore: update spec for <branch-name> — <one-line summary of the change>"
+git commit -m "$CHORE: update spec for <branch-name> — <one-line summary of the change>"
 ```
 
 ## Step 8 — Apply code changes if needed
