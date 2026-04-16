@@ -62,8 +62,7 @@ Use the `AskUserQuestion` tool to ask:
 
 This will:
 1. Move `<spec-directory>` → `specs/completed/<directory-name>`
-2. Commit the move
-3. Switch back to `main` or `develop`"
+2. Commit the move on the feature branch (merge via PR as usual)"
 
 If the user confirms, continue. Otherwise stop.
 
@@ -77,23 +76,11 @@ git add specs/
 git commit -m "chore: complete feature <branch-name>"
 ```
 
-## Step 8 — Switch back to base branch
-
-Use the Bash tool to determine which base branch exists:
-```bash
-git branch | grep -E "^\*? *(main|develop)$" | head -1 | tr -d '* '
-```
-
-Then run:
-```bash
-git checkout <base-branch>
-```
-
 ## Completion
 
 Tell the user:
 "Feature `<branch-name>` marked as complete.
 - Spec moved to `specs/completed/<directory-name>`
-- Back on `<base-branch>`
+- Committed on `<branch-name>` — merge this branch into `development` via your open PR as usual.
 
-**Next:** run `/simple-sdd-constitution-sync` to check whether `mission.md` or `tech-stack.md` need updating based on what this feature changed. Then `/simple-sdd-feature-new` when ready."
+**Next:** after the PR is merged, run `/simple-sdd-constitution-sync` to check whether `mission.md` or `tech-stack.md` need updating. Then `/simple-sdd-feature-new` when ready."

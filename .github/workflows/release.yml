@@ -25,5 +25,8 @@ jobs:
             .claude/commands/simple-sdd-feature-implement.md
             .claude/commands/simple-sdd-feature-update.md
             .claude/commands/simple-sdd-feature-complete.md
+            .claude/commands/simple-sdd-feature-status.md
+            .claude/commands/simple-sdd-constitution-sync.md
+            .claude/commands/simple-sdd-help.md
             .claude/templates/plan-template.md
           generate_release_notes: true

@@ -1,8 +1,8 @@
 # simple-sdd
 
-A [Claude Code](https://claude.ai/code) plugin for **Spec Driven Development (SDD)** — a lightweight workflow that structures your work into markdown spec files before any code is written.
+**Spec Driven Development (SDD)** — a tool-agnostic workflow that structures your work into markdown spec files before any code is written. Works with Claude Code, GitHub Copilot, and OpenCode or any AI environment.
 
-Instead of diving straight into code, SDD asks you to answer a few focused questions first. Claude uses your answers to generate a "constitution" for the project — mission and tech stack — then helps you create a detailed spec each time you start a new feature. Implementation happens one task at a time, each in a fresh Claude session, with a commit after every task.
+Instead of diving straight into code, SDD asks you to answer a few focused questions first. Your AI assistant uses your answers to generate a "constitution" for the project — mission and tech stack — then helps you create a detailed spec each time you start a new feature. Implementation happens one task at a time, each in a fresh session, with a commit after every task.
 
 ---
 
@@ -24,16 +24,28 @@ Run this once from the root of your project:
 curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/install.sh | bash
 ```
 
-This installs into your project directory:
+The script auto-detects your AI tool from the project's directory structure. Pass `--tool` to set it explicitly:
 
-```
-.claude/
-  commands/          — all SDD slash commands (project-scoped)
-  templates/         — plan-template.md used when generating feature plans
-  CLAUDE.md          — injects a section reminding Claude to prompt /clear at breakpoints
+```bash
+# Claude Code
+curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/install.sh | bash -s -- --tool claude
+
+# GitHub Copilot
+curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/install.sh | bash -s -- --tool copilot
+
+# OpenCode
+curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/install.sh | bash -s -- --tool opencode
 ```
 
-Commands that are already installed are skipped. The CLAUDE.md injection is idempotent. Run the install command once per project.
+Depending on the tool, commands and templates are installed under:
+
+| Tool | Commands | Templates | Config injection |
+|------|----------|-----------|-----------------|
+| Claude Code | `.claude/commands/` | `.claude/templates/` | `.claude/CLAUDE.md` |
+| GitHub Copilot | `.github/prompts/` | `.github/prompts/` | `.github/copilot-instructions.md` |
+| OpenCode | `.opencode/commands/` | `.opencode/templates/` | `RULES.md` |
+
+Commands that are already installed are skipped. Config injection is idempotent. Run the install command once per project.
 
 ---
 
@@ -42,11 +54,14 @@ Commands that are already installed are skipped. The CLAUDE.md injection is idem
 SDD follows a fixed lifecycle. Each step is a single slash command:
 
 ```
-/simple-sdd-setup           ← once per project
-/simple-sdd-feature-new     ← once per feature
+/simple-sdd-setup               ← once per project
+/simple-sdd-feature-new         ← once per feature
 /simple-sdd-feature-implement   ← once per task (repeat until done)
 /simple-sdd-feature-update      ← when requirements change mid-feature
+/simple-sdd-feature-status      ← check progress at any time
 /simple-sdd-feature-complete    ← when all tasks are done
+/simple-sdd-constitution-sync   ← after completing a feature
+/simple-sdd-help                ← quick command reference
 ```
 
 Between every command, Claude prompts you to run `/clear`. This keeps each session focused on a single task and prevents context bleed across tasks.
@@ -289,6 +304,102 @@ Claude: Feature `user-authentication` marked as complete.
         Run /simple-sdd-feature-new to start the next feature.
 ```
 
+### `/simple-sdd-feature-status`
+
+**When:** Any time you want to check where you are in the current feature.
+
+**What it does:**
+
+1. Finds the single in-progress spec directory (outside `specs/completed/`).
+2. Reads `plan.md` and counts all `[x]` and `[ ]` checkbox lines.
+3. Prints a summary: feature name, tasks done vs. total, full list of completed and remaining items.
+4. Tells you what to run next — either `/simple-sdd-feature-implement` or `/simple-sdd-feature-complete`.
+
+**Example:**
+
+```
+/simple-sdd-feature-status
+
+Claude: Feature: `user-authentication`
+        Progress: 2/4 tasks complete
+
+        Done (2):
+        - [x] Create users table migration
+        - [x] Add indexes on email and created_at
+        ...
+
+        Remaining (2):
+        - [ ] Login endpoint
+        - [ ] Token refresh logic
+
+        Run /simple-sdd-feature-implement to continue.
+```
+
+---
+
+### `/simple-sdd-constitution-sync`
+
+**When:** After completing a feature. Also prompted automatically by `/simple-sdd-feature-complete`.
+
+**What it does:**
+
+1. Reads `specs/mission.md` and `specs/tech-stack.md` fully.
+2. Finds the reference feature — the in-progress spec if one exists, otherwise the most recently completed one.
+3. Reads `requirements.md` for that feature, then reads `git log` and `git diff --stat` to see what actually changed.
+4. Compares the code changes against the constitution and identifies drift: new libraries, infrastructure changes, shifted product scope, new integrations.
+5. Proposes a concrete diff-style summary of changes to `mission.md` and/or `tech-stack.md`.
+6. Asks for confirmation (or adjustments) before writing anything.
+7. Applies the edits and commits with `chore: sync constitution after <feature-name>`.
+
+If no meaningful drift is found, it tells you the files are already accurate and stops.
+
+**Example:**
+
+```
+/simple-sdd-constitution-sync
+
+Claude: [reads mission.md, tech-stack.md]
+        [reads specs/completed/2026-04-16-user-authentication/requirements.md]
+        [reads git log and diff]
+
+        mission.md
+          → no changes
+
+        tech-stack.md
+          → add: jsonwebtoken 9.x (JWT signing)
+          → add: Google OAuth 2.0 via passport-google-oauth20
+          → add: Redis (session store for OAuth state)
+
+        Do these updates look right? Confirm to apply — or tell me what to adjust.
+
+You: yes
+
+Claude: Constitution updated and committed.
+        mission.md and tech-stack.md now reflect the current state of the project.
+```
+
+---
+
+### `/simple-sdd-help`
+
+**When:** Any time you want a quick reference of all commands.
+
+**What it does:**
+
+Prints the full command reference — every command, what it does, when to use it, and a typical workflow summary — verbatim. Nothing is read from disk; this is a static reference.
+
+**Example:**
+
+```
+/simple-sdd-help
+
+Claude: # Simple SDD — Command Reference
+        ...
+        [full command list and typical workflow]
+        ...
+        Run /simple-sdd-help at any time to see this again.
+```
+
 ---
 
 ## What gets generated
@@ -382,6 +493,13 @@ curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/ins
 → all checkboxes verified
 → spec moved to specs/completed/
 → back on main
+
+# 7. Sync the constitution
+/simple-sdd-constitution-sync
+→ reads mission.md and tech-stack.md
+→ compares against feature diff and requirements
+→ proposes targeted edits (e.g. new libraries, infra changes)
+→ committed after confirmation
 → Run /simple-sdd-feature-new to start the next feature.
 ```
 
@@ -389,10 +507,10 @@ curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/ins
 
 ## Update
 
-Re-run the install command. Existing files are skipped — delete a file first if you want to overwrite it with the latest version.
+Re-run the install command with the same `--tool` flag. Existing files are skipped — delete a file first if you want to overwrite it with the latest version.
 
 ```bash
-curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/install.sh | bash
+curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/install.sh | bash -s -- --tool claude
 ```
 
 ---
@@ -405,3 +523,4 @@ Tag a version to trigger a GitHub release and publish updated command files:
 git tag v1.0.0
 git push origin v1.0.0
 ```
+   
