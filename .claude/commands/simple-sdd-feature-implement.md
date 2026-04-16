@@ -8,14 +8,7 @@ You are implementing the next task of the current in-progress feature.
 
 ## Step 1 — Validate git state
 
-Use the Bash tool to run:
-```bash
-git rev-parse --is-inside-work-tree 2>/dev/null && echo "ok" || echo "not-a-repo"
-```
-
-If the output is `not-a-repo`, tell the user:
-"This directory is not a git repository."
-Then stop.
+Run `git rev-parse --is-inside-work-tree 2>/dev/null || echo not-a-repo` — if `not-a-repo`, stop: "This directory is not a git repository."
 
 ## Step 2 — Find in-progress feature spec
 
@@ -79,12 +72,11 @@ Read silently and build a picture of what's been done before proceeding.
 
 ## Step 5 — Read the spec
 
-Read all spec files:
+Always read:
 - `<spec-directory>/plan.md`
 - `<spec-directory>/requirements.md`
-- `<spec-directory>/validation.md`
-- `specs/mission.md`
-- `specs/tech-stack.md`
+
+On first run only (0 tasks done), also read `specs/tech-stack.md` for stack alignment. Skip `validation.md` and `specs/mission.md` — not needed at task level.
 
 ## Step 6 — Implement the next task
 
@@ -100,11 +92,20 @@ Let's go."
 
 Implement every item in this task. Do not start the following task.
 
-## Step 7 — Mark and commit
+## Step 7 — Mark and commit (or continue)
 
 Once every item in the task is done:
 
 1. Edit `<spec-directory>/plan.md` — mark every checkbox in the completed task as `[x]`.
+
+**Detect exploration-only tasks:** A task is exploration-only if it contains a note like "No code changes in this task" or "exploration only" (case-insensitive). Check the task text you just completed.
+
+**If the task was exploration-only** (no source files were created or modified — only plan.md was updated):
+- Do NOT commit.
+- Tell the user: "Task <N> (exploration) complete — no code changes to commit. Continuing to the next task."
+- Immediately proceed to the next unchecked task group and implement it (loop back to Step 6 for that task). Do not stop.
+
+**If the task produced code changes:**
 2. Commit all changes:
 ```bash
 git add .
@@ -112,6 +113,8 @@ git commit -m "feat(<branch-name>): complete task <N> — <task name>"
 ```
 
 ## Step 8 — Prompt for next session
+
+(Only reached after a code-producing task is committed.)
 
 Check remaining unchecked tasks:
 ```bash

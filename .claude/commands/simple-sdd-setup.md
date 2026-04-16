@@ -8,23 +8,9 @@ You are setting up Spec Driven Development (SDD) for this project.
 
 ## Step 1 — Validate git state
 
-Use the Bash tool to run:
-```bash
-git rev-parse --is-inside-work-tree 2>/dev/null && echo "ok" || echo "not-a-repo"
-```
+Run `git rev-parse --is-inside-work-tree 2>/dev/null || echo not-a-repo` — if `not-a-repo`, stop: "This directory is not a git repository. Run `git init` first."
 
-If the output is `not-a-repo`, tell the user:
-"This directory is not a git repository. Run `git init` before running SDD setup."
-Then stop.
-
-Use the Bash tool to run:
-```bash
-git status --porcelain
-```
-
-If the output is not empty, tell the user:
-"You have uncommitted changes. Commit or stash them first — SDD setup will commit the generated spec files as a clean checkpoint."
-Then stop.
+Run `git status --porcelain` — if not empty, stop: "You have uncommitted changes. Commit or stash them first — SDD setup will commit the generated spec files as a clean checkpoint."
 
 ## Step 2 — Check existing setup
 

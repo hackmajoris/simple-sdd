@@ -8,14 +8,7 @@ You are applying a change to the current in-progress feature.
 
 ## Step 1 — Validate git state
 
-Use the Bash tool to run:
-```bash
-git rev-parse --is-inside-work-tree 2>/dev/null && echo "ok" || echo "not-a-repo"
-```
-
-If the output is `not-a-repo`, tell the user:
-"This directory is not a git repository."
-Then stop.
+Run `git rev-parse --is-inside-work-tree 2>/dev/null || echo not-a-repo` — if `not-a-repo`, stop: "This directory is not a git repository."
 
 ## Step 2 — Validate feature branch
 

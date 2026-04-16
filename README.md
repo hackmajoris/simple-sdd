@@ -1,8 +1,8 @@
 # simple-sdd
 
-A [Claude Code](https://claude.ai/code) plugin for **Spec Driven Development (SDD)** — a lightweight, interactive workflow that turns a blank project (or an existing codebase) into a structured set of markdown spec files before any implementation begins.
+A [Claude Code](https://claude.ai/code) plugin for **Spec Driven Development (SDD)** — a lightweight workflow that structures your work into markdown spec files before any code is written.
 
-Instead of diving straight into code, SDD asks you to answer a few focused questions first. Claude uses your answers to generate a small "constitution" for the project — mission and tech stack — then helps you create detailed feature specs each time you start a new chunk of work.
+Instead of diving straight into code, SDD asks you to answer a few focused questions first. Claude uses your answers to generate a "constitution" for the project — mission and tech stack — then helps you create a detailed spec each time you start a new feature. Implementation happens one task at a time, each in a fresh Claude session, with a commit after every task.
 
 ---
 
@@ -10,96 +10,298 @@ Instead of diving straight into code, SDD asks you to answer a few focused quest
 
 - **Clarity before code.** Writing specs forces you to articulate what you're building and why, catching ambiguity early.
 - **Shared context.** Specs live in the repo alongside the code. Any collaborator (human or AI) can pick up where you left off.
-- **Feature-by-feature discipline.** Each feature gets its own directory with a plan, requirements, and validation criteria — so you always know what done looks like before you start.
-- **Works for new and existing projects.** New projects get scaffolded from scratch. Existing projects get reverse-engineered from the codebase and then filled in interactively.
-- **Fresh context, better results.** Each command prompts you to run `/clear` when done, so the next task always starts with a clean session.
+- **Feature-by-feature discipline.** Each feature gets its own directory with requirements, a task plan, and validation criteria — so you always know what "done" looks like before you start.
+- **Works for new and existing projects.** New projects get scaffolded from scratch. Existing codebases get analyzed and filled in interactively.
+- **Fresh context, better results.** Each command prompts you to run `/clear` when done, so every task starts with a clean, focused session.
 
 ---
 
 ## Install
 
-Run this from the root of your project:
+Run this once from the root of your project:
 
 ```bash
 curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/install.sh | bash
 ```
 
 This installs into your project directory:
-- `.claude/commands/` — all SDD slash commands
-- `.claude/templates/` — plan template used when generating feature specs
-- `.claude/CLAUDE.md` — injects a section that reminds Claude to prompt `/clear` at natural breakpoints
 
-Commands that are already installed are skipped. The CLAUDE.md injection is idempotent.
+```
+.claude/
+  commands/          — all SDD slash commands (project-scoped)
+  templates/         — plan-template.md used when generating feature plans
+  CLAUDE.md          — injects a section reminding Claude to prompt /clear at breakpoints
+```
 
-> **Note:** Commands are project-scoped. Each project gets its own copy. Run the install command once per project.
+Commands that are already installed are skipped. The CLAUDE.md injection is idempotent. Run the install command once per project.
 
 ---
 
-## Workflow
+## How it works
 
-### Step 1 — Set up project specs
+SDD follows a fixed lifecycle. Each step is a single slash command:
 
-Run once at the start of a project:
+```
+/simple-sdd-setup           ← once per project
+/simple-sdd-feature-new     ← once per feature
+/simple-sdd-feature-implement   ← once per task (repeat until done)
+/simple-sdd-feature-update      ← when requirements change mid-feature
+/simple-sdd-feature-complete    ← when all tasks are done
+```
+
+Between every command, Claude prompts you to run `/clear`. This keeps each session focused on a single task and prevents context bleed across tasks.
+
+---
+
+## Commands
+
+### `/simple-sdd-setup`
+
+**When:** Once at the start of a project.
+
+**What it does:**
+
+1. Validates that the directory is a git repo with a clean working tree.
+2. Checks if `specs/mission.md` and `specs/tech-stack.md` already exist. If they do, it tells you the project is already configured and suggests `/simple-sdd-feature-new`.
+3. Asks whether this is a **new project** or an **existing project**.
+4. Asks two grouped question sets (mission, then tech stack) — 3 questions each — before writing anything to disk.
+5. Writes `specs/mission.md` and `specs/tech-stack.md`.
+6. Shows you the generated files and asks for confirmation before committing.
+7. Commits the spec files with `chore: add SDD spec files`.
+
+**For new projects:** Claude reads any `README.md` or brief you have, then asks from scratch.
+
+**For existing projects:** Claude reads your codebase first — manifests, directory structure, docs — and pre-fills the answers based on what it finds. You only correct or expand.
+
+**Example:**
 
 ```
 /simple-sdd-setup
+
+Claude: Is this a new project or an existing one?
+You: new
+
+Claude: [reads README.md]
+       Found: no existing docs. Let me ask a few questions.
+
+       1. What is this product? Who is it for?
+       2. What problem does it solve?
+       3. What does success look like?
+
+You: [answers]
+
+Claude: [asks tech stack questions]
+You: [answers]
+
+Claude: Here's what I'll write:
+        - specs/mission.md
+        - specs/tech-stack.md
+        Ready to commit?
+
+You: yes
+
+Claude: Committed. Run /clear when ready.
 ```
-
-If the project is already configured (`specs/mission.md` and `specs/tech-stack.md` exist), Claude will tell you and suggest running `/simple-sdd-feature-new` instead.
-
-Otherwise, Claude asks whether this is a **new project** or an **existing project** and runs the appropriate flow internally. Claude reads your `README.md` and any other context files first, then asks **2 grouped question sets** (mission, tech stack) before writing anything to disk.
-
-When done, Claude prompts you to run `/clear` before the next step.
 
 ---
 
-### Step 2 — Start a feature
+### `/simple-sdd-feature-new`
 
-Run whenever you're ready to work on a new piece of functionality:
+**When:** Whenever you're ready to start a new piece of work.
+
+**What it does:**
+
+1. Validates git state: must be a clean working tree on `main` or `develop`.
+2. Scans all spec directories outside `specs/completed/` for unchecked boxes. If any open tasks are found, it stops and tells you to finish them first.
+3. Reads `specs/mission.md`, `specs/tech-stack.md`, and the plan template for context.
+4. Asks three grouped questions: what you're building, why now, and any constraints.
+5. Creates a git branch (kebab-case feature name, no date).
+6. Creates `specs/<date>-<feature-name>/` and writes three files: `requirements.md`, `plan.md`, `validation.md`.
+7. Shows the files and asks for confirmation before committing.
+8. Commits the spec with `chore: add spec for <feature-name>`.
+
+The generated `plan.md` follows `.claude/templates/plan-template.md` — a structure with numbered task groups, checkboxes, mandatory test steps per task, and a post-completion section.
+
+**Example:**
 
 ```
 /simple-sdd-feature-new
+
+Claude: [reads specs/mission.md, specs/tech-stack.md]
+        Building: a spec-driven development plugin for Claude Code.
+        Stack: bash, markdown, GitHub Actions.
+
+        1. What are you building or changing?
+        2. Why now? What's the trigger for this work?
+        3. Any constraints? Dependencies, things not to touch?
+
+You: 1. User authentication with JWT
+     2. Needed before the beta launch
+     3. Must not change the existing session middleware
+
+Claude: Creating branch `user-authentication`...
+        Writing specs/2026-04-16-user-authentication/
+        → requirements.md
+        → plan.md  (4 task groups)
+        → validation.md
+
+        Ready to commit?
+
+You: yes
+
+Claude: Committed. Run /clear, then /simple-sdd-feature-implement.
 ```
-
-Claude reads your existing specs for context, then asks **3 grouped questions** about what you're building. After your answers, it:
-
-1. Creates a git branch
-2. Creates a dated directory under `specs/`
-3. Writes `requirements.md`, `plan.md` (following the plan template), and `validation.md`
-
-When done, Claude prompts you to run `/clear` before starting implementation.
 
 ---
 
-## Commands reference
+### `/simple-sdd-feature-implement`
 
-| Command | When to use |
-|---|---|
-| `/simple-sdd-setup` | Start here — detects if already configured, otherwise runs full setup |
-| `/simple-sdd-feature-new` | Start a new feature or change |
-| `/simple-sdd-feature-complete` | Mark the current feature as done — verifies all checkboxes, moves spec to `specs/completed/`, switches back to base branch |
-| `/simple-sdd-feature-implement` | Implement one task — works for both first run and resuming after a break. Run `/clear` between tasks. |
-| `/simple-sdd-feature-update` | Apply a change request — updates the spec first, confirms, then applies code changes if needed |
+**When:** After committing the spec — and after every `/clear` until all tasks are done.
+
+**What it does:**
+
+1. Finds the single in-progress spec directory (outside `specs/completed/`). Stops if none or more than one is found.
+2. Switches to the feature branch.
+3. Counts checked vs. unchecked tasks in `plan.md`.
+   - **First run (0 tasks done):** reads the spec and dives straight into Task 1.
+   - **Resuming (some tasks done):** reconstructs context from `git log` and `git diff` first, then continues from the first unchecked task.
+4. Implements every item in the next unchecked task group. Does not start the following task.
+5. Marks every checkbox in the completed task as `[x]` in `plan.md`.
+6. Commits all changes with `feat(<branch>): complete task N — <task name>`.
+7. If tasks remain: prompts you to run `/clear` then `/simple-sdd-feature-implement` again.
+   If all tasks are done: prompts you to run `/simple-sdd-feature-complete`.
+
+**Example (first run):**
+
+```
+/simple-sdd-feature-implement
+
+Claude: Starting `user-authentication` — 0 of 4 tasks done.
+
+        Next task:
+        ### Task 1: Database schema
+        - [ ] Create users table migration
+        - [ ] Add indexes on email and created_at
+        - [ ] Write migration tests
+        - [ ] Run tests
+
+        Let's go.
+
+        [implements, marks [x], commits]
+
+        Task 1 complete and committed.
+        Run /clear then /simple-sdd-feature-implement to continue with Task 2.
+```
+
+**Example (resuming after a break):**
+
+```
+/simple-sdd-feature-implement
+
+Claude: Resuming `user-authentication` — 2 of 4 tasks done.
+        Done so far: users table, JWT helpers (src/auth/, migrations/)
+        Next: Task 3 — Login endpoint
+
+        [implements Task 3, marks [x], commits]
+
+        Task 3 complete and committed.
+        Run /clear then /simple-sdd-feature-implement to continue with Task 4.
+```
+
+---
+
+### `/simple-sdd-feature-update`
+
+**When:** Requirements change while a feature is in progress.
+
+**What it does:**
+
+1. Validates git state: must be on a feature branch (not `main`/`develop`) with a matching spec directory.
+2. Reads the current `plan.md`, `requirements.md`, and `validation.md`.
+3. Asks one open question: what needs to change?
+4. Updates only the relevant spec files:
+   - New tasks get a ➕ prefix in `plan.md`
+   - Blockers get a ⚠️ prefix
+   - Scope changes go into `requirements.md`
+   - New acceptance criteria go into `validation.md`
+5. Shows a diff-style summary of the spec changes and asks for confirmation.
+6. Commits the updated spec.
+7. If code changes are needed (new tasks added, approach changed), implements them following the updated plan. If it's a spec-only update, tells you to continue with `/simple-sdd-feature-implement`.
+
+**Example:**
+
+```
+/simple-sdd-feature-update
+
+Claude: [reads current spec]
+        What needs to change?
+
+You: We need to support OAuth in addition to JWT. Google login is required for the beta.
+
+Claude: Here's what I'll update:
+        requirements.md — added OAuth to scope; Google provider required
+        plan.md         — ➕ Task 5: OAuth integration (Google provider)
+        validation.md   — added: Google login flow must work end to end
+
+        Does this look right?
+
+You: yes
+
+Claude: Spec committed. New task added — run /simple-sdd-feature-implement to pick it up.
+```
+
+---
+
+### `/simple-sdd-feature-complete`
+
+**When:** All tasks in `plan.md` and `validation.md` are checked.
+
+**What it does:**
+
+1. Validates git state: must be on a feature branch with a clean working tree.
+2. Finds the matching spec directory.
+3. Checks for any unchecked boxes in `plan.md` and `validation.md`. If any remain, it lists them and stops — all items must be ticked before closing.
+4. Asks for confirmation, listing exactly what will happen.
+5. Moves the spec directory to `specs/completed/<directory-name>`.
+6. Commits the move with `chore: complete feature <branch-name>`.
+7. Switches back to `main` or `develop`.
+
+> **Note on validation.md checkboxes:** some items in `validation.md` are manual checks (e.g. "test the login flow in the browser"). Run those yourself and tick the boxes before running this command.
+
+**Example:**
+
+```
+/simple-sdd-feature-complete
+
+Claude: All checkboxes ticked. Ready to complete `user-authentication`?
+
+        This will:
+        1. Move specs/2026-04-16-user-authentication/ → specs/completed/
+        2. Commit the move
+        3. Switch back to main
+
+You: yes
+
+Claude: Feature `user-authentication` marked as complete.
+        Spec moved to specs/completed/2026-04-16-user-authentication/
+        Back on main.
+
+        Run /simple-sdd-feature-new to start the next feature.
+```
 
 ---
 
 ## What gets generated
 
-### Project setup
+### Project setup (`/simple-sdd-setup`)
 
 ```
 specs/
-  mission.md     — what the product is, the problem it solves, definition of success
-  tech-stack.md  — languages, frameworks, infrastructure, constraints
+  mission.md      — what the product is, the problem it solves, definition of success
+  tech-stack.md   — languages, frameworks, infrastructure, constraints
 ```
 
-**For new projects**, Claude asks you to describe everything from scratch.
-
-**For existing projects**, Claude first analyzes the codebase — reading manifests, directory structure, existing docs — and pre-fills answers based on what it finds. You only need to correct or expand.
-
----
-
-### Feature work
+### Feature spec (`/simple-sdd-feature-new`)
 
 ```
 specs/
@@ -107,55 +309,87 @@ specs/
     requirements.md   — scope (in/out), context, constraints, key decisions
     plan.md           — numbered task groups with checkboxes, ordered by dependency
     validation.md     — acceptance criteria, manual checks, definition of done
+
+specs/completed/
+  2026-04-10-previous-feature/   — moved here by /simple-sdd-feature-complete
+    ...
 ```
 
-`plan.md` follows the structure defined in `.claude/templates/plan-template.md`, which includes mandatory test tasks per group, a post-completion section, and progress tracking conventions.
+`plan.md` follows `.claude/templates/plan-template.md`, which defines:
+- **Overview** and **Context** sections
+- **Development Approach** and **Testing Strategy**
+- **Implementation Steps** — `### Task N:` groups, each ending with write-and-run-tests checkboxes
+- **Technical Details** — data structures, parameters, flow
+- **Post-Completion** — manual verification steps (no checkboxes)
 
-The git branch uses the kebab-case feature name (without the date).
+The git branch uses the kebab-case feature name without the date prefix (e.g. `user-authentication`).
 
 ---
 
-## Example session
+## Full example session
 
 ```
-# Install (once per project)
+# 1. Install (once per project)
 curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/install.sh | bash
 
-# Set up specs
+# 2. Set up project specs
 /simple-sdd-setup
-> New or existing? → new
-> [3 questions about mission]
-> [3 questions about tech stack]
-> specs/ written. Run /clear when ready.
+→ new or existing?
+→ [mission questions] → [tech stack questions]
+→ specs/mission.md + specs/tech-stack.md written and committed
+→ Run /clear when ready.
 
 /clear
 
-# Start a feature
+# 3. Start a feature
 /simple-sdd-feature-new
-> [reads specs/ for context]
-> [3 questions about the feature]
-> Branch created. specs/2026-04-16-user-authentication/ written.
-> Run /clear before starting implementation.
+→ [reads specs/ for context]
+→ [3 questions about the feature]
+→ branch `user-authentication` created
+→ specs/2026-04-16-user-authentication/ written and committed
+→ Run /clear, then /simple-sdd-feature-implement.
 
 /clear
 
-# Implement one task at a time
+# 4. Implement — one task per session
 /simple-sdd-feature-implement
-> [implements Task 1, commits, prompts /clear]
+→ Task 1: Database schema — implemented and committed
+→ Run /clear then /simple-sdd-feature-implement.
 
 /clear
 /simple-sdd-feature-implement
-> [implements Task 2, commits, prompts /clear]
+→ Task 2: JWT helpers — implemented and committed
+→ Run /clear then /simple-sdd-feature-implement.
 
-# When all tasks done
+/clear
+
+# 5. Mid-feature change request
+/simple-sdd-feature-update
+→ "add Google OAuth support"
+→ spec updated: requirements.md, plan.md (➕ Task 5), validation.md
+→ committed
+→ Run /simple-sdd-feature-implement to pick up the new task.
+
+/clear
+/simple-sdd-feature-implement  ← Task 3
+/clear
+/simple-sdd-feature-implement  ← Task 4
+/clear
+/simple-sdd-feature-implement  ← Task 5 (new OAuth task)
+
+# 6. Close the feature
 /simple-sdd-feature-complete
+→ all checkboxes verified
+→ spec moved to specs/completed/
+→ back on main
+→ Run /simple-sdd-feature-new to start the next feature.
 ```
 
 ---
 
 ## Update
 
-Re-run the install command from your project root. Existing files are skipped — delete a file first if you want to overwrite it with the latest version.
+Re-run the install command. Existing files are skipped — delete a file first if you want to overwrite it with the latest version.
 
 ```bash
 curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/install.sh | bash
@@ -165,7 +399,7 @@ curl -sSL https://github.com/hackmajoris/simple-sdd/releases/latest/download/ins
 
 ## Release
 
-Tag a version to trigger a GitHub release and publish updated files:
+Tag a version to trigger a GitHub release and publish updated command files:
 
 ```bash
 git tag v1.0.0

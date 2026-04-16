@@ -8,49 +8,51 @@ You are starting a new feature or change under Spec Driven Development (SDD).
 
 ## Step 0 — Validate git state
 
-Use the Bash tool to run:
+Run `git rev-parse --is-inside-work-tree 2>/dev/null || echo not-a-repo` — if `not-a-repo`, stop: "This directory is not a git repository. Run `git init` first."
+
+Run `git status --porcelain` — if not empty, stop: "You have uncommitted changes. Commit or stash them first — SDD will create a new branch and commit the feature spec files as a clean checkpoint."
+
+## Step 1 — Check for in-progress feature
+
+Use the Bash tool to find all spec directories outside `specs/completed/`:
 ```bash
-git rev-parse --is-inside-work-tree 2>/dev/null && echo "ok" || echo "not-a-repo"
+find specs -mindepth 1 -maxdepth 1 -type d ! -name completed 2>/dev/null
 ```
 
-If the output is `not-a-repo`, tell the user:
-"This directory is not a git repository. Run `git init` before using SDD."
+If any directories are found, tell the user:
+"A feature is already in progress: `<directory>`
+
+Finish or complete it before starting a new one:
+- `/simple-sdd-feature-implement` — continue implementation
+- `/simple-sdd-feature-status` — check what's left
+- `/simple-sdd-feature-complete` — close it if all tasks are done"
+
 Then stop.
-
-Use the Bash tool to run:
-```bash
-git status --porcelain
-```
-
-If the output is not empty, tell the user:
-"You have uncommitted changes. Commit or stash them first — SDD will create a new branch and commit the feature spec files as a clean checkpoint."
-Then stop.
-
-## Step 1 — Check for unfinished specs
-
-Before doing anything else, check whether an existing spec is still in progress.
-
-Use the Glob tool to find all files matching `specs/*/plan.md` and `specs/*/validation.md`.
-
-For each file found, use the Grep tool to search for unchecked boxes matching the pattern `- \[ \]`.
-
-If **any** unchecked boxes are found across any of those files:
-1. List every file that has open boxes and how many remain.
-2. Tell the user:
-   "There is an unfinished spec. Complete all checkboxes in the files listed above before starting a new feature.
-   For manual-check items: run the steps yourself, then tick the boxes (`- [ ]` → `- [x]`) to record that you've verified them."
-3. Stop — do not proceed to Phase 0.
-
-If all checkboxes are checked (or no spec files exist yet), continue.
 
 ---
 
-## Phase 0 — Read context
+## Phase 0 — Read and validate context
 
 Before asking anything:
 1. Read `specs/mission.md` and `specs/tech-stack.md` — internalize the product purpose and stack constraints.
-2. Read `.claude/templates/plan-template.md` — this defines the required structure for `plan.md`. Internalize it fully before generating any files.
-3. Show the user a brief summary (2–3 lines) of the product and stack.
+2. Show the user a brief summary (2–3 lines) of the product and stack.
+
+Then use the `AskUserQuestion` tool to ask:
+"Are `mission.md` and `tech-stack.md` still accurate, or has anything changed since they were last updated? (new libraries, infra changes, shifted scope, etc.)
+
+- If yes → describe what's changed and I'll update them before we spec this feature.
+- If no → we'll proceed."
+
+If the user reports changes:
+- Apply their corrections to `specs/mission.md` and/or `specs/tech-stack.md` using the Edit tool.
+- Commit the updates:
+  ```bash
+  git add specs/mission.md specs/tech-stack.md
+  git commit -m "chore: update constitution before <feature-name> spec"
+  ```
+- Tell the user the constitution is updated, then continue.
+
+If the user confirms no changes are needed, continue to Phase 1.
 
 ---
 
@@ -81,6 +83,8 @@ Tell the user the branch and directory that were created.
 ---
 
 ## Phase 3 — Write spec files
+
+Before writing any files, read `.claude/templates/plan-template.md` — this defines the required structure for `plan.md`.
 
 Use the Write tool to write the following three files into `specs/<directory-name>/`. Use `specs/mission.md` and `specs/tech-stack.md` for alignment.
 

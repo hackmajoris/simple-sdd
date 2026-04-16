@@ -8,14 +8,7 @@ You are completing the current SDD feature.
 
 ## Step 1 — Validate git state
 
-Use the Bash tool to run:
-```bash
-git rev-parse --is-inside-work-tree 2>/dev/null && echo "ok" || echo "not-a-repo"
-```
-
-If the output is `not-a-repo`, tell the user:
-"This directory is not a git repository."
-Then stop.
+Run `git rev-parse --is-inside-work-tree 2>/dev/null || echo not-a-repo` — if `not-a-repo`, stop: "This directory is not a git repository."
 
 ## Step 2 — Identify current feature branch
 
@@ -45,14 +38,7 @@ Store the matched directory path (e.g. `specs/2026-04-16-user-authentication`).
 
 ## Step 4 — Check for uncommitted changes
 
-Use the Bash tool to run:
-```bash
-git status --porcelain
-```
-
-If the output is not empty, tell the user:
-"You have uncommitted changes. Commit them before completing the feature."
-Then stop.
+Run `git status --porcelain` — if not empty, stop: "You have uncommitted changes. Commit them before completing the feature."
 
 ## Step 5 — Verify all checkboxes are ticked
 
@@ -110,4 +96,4 @@ Tell the user:
 - Spec moved to `specs/completed/<directory-name>`
 - Back on `<base-branch>`
 
-Run `/simple-sdd-feature-new` to start the next feature."
+**Next:** run `/simple-sdd-constitution-sync` to check whether `mission.md` or `tech-stack.md` need updating based on what this feature changed. Then `/simple-sdd-feature-new` when ready."
