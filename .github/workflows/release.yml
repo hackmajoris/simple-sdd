@@ -1,0 +1,29 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            install.sh
+            .claude/commands/simple-sdd-setup.md
+            .claude/commands/simple-sdd-feature-new.md
+            .claude/commands/simple-sdd-feature-implement.md
+            .claude/commands/simple-sdd-feature-update.md
+            .claude/commands/simple-sdd-feature-complete.md
+            .claude/templates/plan-template.md
+          generate_release_notes: true
