@@ -1,6 +1,6 @@
 # simple-sdd
 
-**Spec Driven Development (SDD)** — a tool-agnostic workflow that structures your work into markdown spec files before any code is written. Works with Claude Code, GitHub Copilot, and OpenCode or any AI environment.
+**simple ssd* — Spec Driven Development a tool-agnostic workflow that structures your work into markdown spec files before any code is written. Works with Claude Code, GitHub Copilot, and OpenCode or any AI environment.
 
 ## tl;dr
 
