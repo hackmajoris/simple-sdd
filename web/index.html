@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>simple-sdd — Spec Driven Development</title>
+  <meta name="description" content="A tool-agnostic workflow that turns your AI assistant into a disciplined collaborator. Write the spec before the code." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script type="module" src="/src/main.js"></script>
+</head>
+<body>
+<main class="page">
+
+  <!-- META STRIP -->
+  <div class="meta">
+    <div class="left">
+      <span><span class="dot"></span><b>simple-sdd</b></span>
+      <span class="path">hackmajoris / simple-sdd</span>
+      <span>v1.0.2</span>
+    </div>
+    <div class="right">
+      <span>MIT</span>
+      <span>Shell · Markdown</span>
+      <span>Apr&nbsp;2026</span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div>
+      <div class="kicker">Spec Driven Development</div>
+      <h1 class="title">Write the&nbsp;spec <em>before</em> the code.</h1>
+      <p class="lede">
+        A tool-agnostic workflow that turns your AI assistant into a disciplined collaborator.
+        <b>Answer a few focused questions</b>, generate a project constitution, then ship
+        features one task at a time — each in a fresh session, each committed on its own.
+      </p>
+      <div class="tags">
+        <span class="tag on">Claude Code</span>
+        <span class="tag on">GitHub Copilot</span>
+        <span class="tag on">OpenCode</span>
+        <span class="tag">any AI env</span>
+      </div>
+    </div>
+
+    <div class="term" aria-hidden="true">
+      <div class="bar">~/your-project — zsh</div>
+      <div class="line p"><span class="c">curl -sSL .../install.sh | bash</span></div>
+      <div class="line dim">&nbsp;&nbsp; installing → .claude/commands/  .claude/templates/</div>
+      <div class="line ok">&nbsp;&nbsp; ✓ 8 commands ready</div>
+      <div class="spacer"></div>
+      <div class="line p"><span class="cmd">/simple-sdd-setup</span></div>
+      <div class="line dim">&nbsp;&nbsp; Is this a new or existing project?</div>
+      <div class="line c">&nbsp;&nbsp; › existing</div>
+      <div class="line dim">&nbsp;&nbsp; Reading package.json, README, src/ …</div>
+      <div class="line amber">&nbsp;&nbsp; Drafted: specs/mission.md, specs/tech-stack.md</div>
+      <div class="line ok">&nbsp;&nbsp; ✓ committed · chore: add SDD spec files</div>
+      <div class="spacer"></div>
+      <div class="line p"><span class="cmd">/simple-sdd-feature-new<span class="cursor"></span></span></div>
+    </div>
+  </div>
+
+  <!-- WHY -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-num">§ 01 &nbsp;/&nbsp; WHY</div>
+      <h2 class="sec-title">Five small disciplines that make <em>any</em> AI pairing work better.</h2>
+    </div>
+    <div class="why">
+      <div class="card">
+        <div class="idx">01</div>
+        <h3>Clarity before code</h3>
+        <p>Writing a spec forces you to articulate what you're building and why — ambiguity surfaces while it's still cheap.</p>
+      </div>
+      <div class="card">
+        <div class="idx">02</div>
+        <h3>Shared context, in the repo</h3>
+        <p>Specs live next to the code. Any collaborator — human or AI — can pick up exactly where the last one stopped.</p>
+      </div>
+      <div class="card">
+        <div class="idx">03</div>
+        <h3>Feature-by-feature discipline</h3>
+        <p>Every feature gets its own directory: requirements, task plan, validation. You always know what "done" looks like.</p>
+      </div>
+      <div class="card">
+        <div class="idx">04</div>
+        <h3>New <em>and</em> existing projects</h3>
+        <p>Green fields scaffold from a blank slate. Existing codebases get analyzed and pre-filled — you only correct.</p>
+      </div>
+    </div>
+    <div class="fifth-rule">
+      <div class="label">+ FIFTH RULE</div>
+      <div class="body">
+        <b>Fresh context, better results.</b> &nbsp;Every command ends with a prompt to run
+        <span class="kbd">/clear</span> — so each task starts
+        with a focused session and context never bleeds across work.
+      </div>
+    </div>
+  </section>
+
+  <!-- LIFECYCLE -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-num">§ 02 &nbsp;/&nbsp; LIFECYCLE</div>
+      <h2 class="sec-title">Eight slash commands. <em>One</em> opinionated loop.</h2>
+    </div>
+
+    <div class="cycle">
+      <div class="cycle-diagram">
+        <div class="step">
+          <div class="n">01</div>
+          <div class="cmd">/simple-sdd-setup</div>
+          <div class="when">once per project</div>
+        </div>
+        <div class="step spacer"><div class="n"></div><div class="rule"></div><div></div></div>
+        <div class="step">
+          <div class="n">02</div>
+          <div class="cmd">/simple-sdd-feature-new</div>
+          <div class="when">once per feature</div>
+        </div>
+        <div class="step spacer"><div class="n"></div><div class="rule"></div><div></div></div>
+        <div class="step">
+          <div class="n">03</div>
+          <div class="cmd">/simple-sdd-feature-implement</div>
+          <div class="when">repeat per task</div>
+        </div>
+        <div class="step">
+          <div class="n">04</div>
+          <div class="cmd">/simple-sdd-feature-update</div>
+          <div class="when">when reqs change</div>
+        </div>
+        <div class="step">
+          <div class="n">05</div>
+          <div class="cmd">/simple-sdd-feature-status</div>
+          <div class="when">any time</div>
+        </div>
+        <div class="step spacer"><div class="n"></div><div class="rule"></div><div></div></div>
+        <div class="step">
+          <div class="n">06</div>
+          <div class="cmd">/simple-sdd-feature-complete</div>
+          <div class="when">all boxes ticked</div>
+        </div>
+        <div class="step">
+          <div class="n">07</div>
+          <div class="cmd">/simple-sdd-constitution-sync</div>
+          <div class="when">after shipping</div>
+        </div>
+        <div class="step">
+          <div class="n">08</div>
+          <div class="cmd">/simple-sdd-help</div>
+          <div class="when">reference</div>
+        </div>
+      </div>
+
+      <div class="cycle-text">
+        <h4>A commit after every task.<br/>A clear head before the next.</h4>
+        <p>
+          Setup writes a <b>constitution</b> — mission and tech stack — that every future
+          command reads first. Each new feature gets its own branch and its own
+          <span class="kbd">specs/YYYY-MM-DD-name/</span> directory with three files: requirements, plan, validation.
+        </p>
+        <p>
+          The implement command does <b>one task group at a time</b>, ticks its checkboxes,
+          commits with a structured message, and stops. You <span class="kbd">/clear</span>, then run it again.
+        </p>
+        <div class="callout">
+          Resuming after a break? It reconstructs context from <span class="kbd">git log</span> and
+          <span class="kbd">git diff</span> before picking up the first unchecked task.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARTIFACTS & TOOLS -->
+  <section>
+    <div class="sec-head">
+      <div class="sec-num">§ 03 &nbsp;/&nbsp; ARTIFACTS</div>
+      <h2 class="sec-title">Everything it writes is plain, readable <em>markdown</em>.</h2>
+    </div>
+
+    <div class="artifacts">
+      <div class="tree">
+        <div class="title">On disk, after one feature</div>
+        <span class="dir">specs/</span><br/>
+        &nbsp;&nbsp;mission.md &nbsp;&nbsp;<span class="c"># product, problem, success</span><br/>
+        &nbsp;&nbsp;tech-stack.md <span class="c"># langs, infra, constraints</span><br/>
+        &nbsp;&nbsp;<span class="acc">2026-04-16-user-authentication/</span><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;requirements.md <span class="c"># scope, context</span><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;plan.md &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c"># task groups ☑</span><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;validation.md &nbsp;&nbsp;<span class="c"># acceptance, DoD</span><br/>
+        &nbsp;&nbsp;<span class="dir">completed/</span><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;2026-04-10-previous-feature/<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...
+      </div>
+
+      <div class="txt">
+        <h4>Three living documents.</h4>
+        <p>
+          <b>requirements.md</b> defines scope — what's in, what's out, and the constraints that shaped the decision.
+          <b>plan.md</b> is a numbered set of task groups with checkboxes and mandatory test steps.
+          <b>validation.md</b> holds acceptance criteria and manual checks you tick before closing.
+        </p>
+        <p>
+          Updates mid-flight are marked: <span class="kbd">➕</span> added tasks,
+          <span class="kbd">⚠️</span> blockers. Nothing gets silently rewritten.
+        </p>
+      </div>
+    </div>
+
+    <div class="tools-gap"></div>
+
+    <div class="tools">
+      <div class="tool">
+        <div class="name">Claude Code</div>
+        <div class="row"><span class="k">commands</span><span class="v">.claude/commands/</span></div>
+        <div class="row"><span class="k">templates</span><span class="v">.claude/templates/</span></div>
+        <div class="row"><span class="k">config</span><span class="v">.claude/CLAUDE.md</span></div>
+      </div>
+      <div class="tool">
+        <div class="name">GitHub Copilot</div>
+        <div class="row"><span class="k">commands</span><span class="v">.github/prompts/</span></div>
+        <div class="row"><span class="k">templates</span><span class="v">.github/prompts/</span></div>
+        <div class="row"><span class="k">config</span><span class="v">copilot-instructions.md</span></div>
+      </div>
+      <div class="tool">
+        <div class="name">OpenCode</div>
+        <div class="row"><span class="k">commands</span><span class="v">.opencode/commands/</span></div>
+        <div class="row"><span class="k">templates</span><span class="v">.opencode/templates/</span></div>
+        <div class="row"><span class="k">config</span><span class="v">RULES.md</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <section style="border-bottom: 0;">
+    <div class="sec-head">
+      <div class="sec-num">§ 04 &nbsp;/&nbsp; INSTALL</div>
+      <h2 class="sec-title">One script. Auto-detects your tool. <em>Idempotent.</em></h2>
+    </div>
+
+    <div class="install">
+      <div>
+        <h4>Run once, from the root of your project.</h4>
+        <p>Re-run with a <span class="kbd">--tool</span> flag to switch or update. Commands are overwritten with the latest; config injection only happens once.</p>
+      </div>
+      <div class="boxes">
+        <div class="box"><span class="hash"># default — auto-detect</span><br/>curl -sSL <span class="pill">https://github.com/hackmajoris/simple-sdd/releases/latest/download/install.sh</span> | bash</div>
+        <div class="box"><span class="hash"># pin a tool explicitly</span><br/>curl -sSL <span class="pill">…/install.sh</span> | bash -s -- --tool <span class="val">claude</span> <span class="pipe">|</span> copilot <span class="pipe">|</span> opencode</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div><span class="rule-glyph"></span><a href="https://github.com/hackmajoris/simple-sdd">github.com/hackmajoris/simple-sdd</a></div>
+    <div>MIT · v1.0.2 · Shell 100%</div>
+  </footer>
+
+</main>
+</body>
+</html>
