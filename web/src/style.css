@@ -37,27 +37,20 @@ body {
   padding: 24px 20px 60px;
 }
 
-/* ——— meta strip ——— */
-.meta {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  border-bottom: 1px solid var(--rule-2);
-  padding-bottom: 14px;
-  margin-bottom: 36px;
-  font-size: 12px;
+/* ——— site name ——— */
+.site-name {
+  font-size: 13px;
+  font-weight: 600;
   letter-spacing: 0.02em;
+  margin-bottom: 36px;
+  color: var(--ink);
 }
-.meta .left { display: flex; flex-wrap: wrap; gap: 16px; align-items: baseline; }
-.meta .dot {
+.dot {
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--accent);
   display: inline-block; margin-right: 8px; vertical-align: 1px;
   box-shadow: 0 0 0 3px #ffa85422;
 }
-.meta .path { color: var(--ink-3); }
-.meta .right { color: var(--ink-3); display: flex; gap: 16px; }
-.meta b { color: var(--ink); font-weight: 600; }
 
 /* ——— hero ——— */
 .hero {
@@ -482,9 +475,6 @@ footer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid va
 @media (min-width: 600px) {
   .page { padding: 36px 36px 72px; }
 
-  .meta { flex-direction: row; justify-content: space-between; align-items: baseline; margin-bottom: 44px; }
-  .meta .left { gap: 28px; }
-
   h1.title { font-size: 58px; }
 
   .why { grid-template-columns: repeat(2, 1fr); gap: 24px; }
@@ -504,8 +494,6 @@ footer a { color: var(--ink); text-decoration: none; border-bottom: 1px solid va
 /* ——— desktop (≥1024px) ——— */
 @media (min-width: 1024px) {
   .page { padding: 56px 64px 80px; }
-
-  .meta { margin-bottom: 44px; }
 
   .hero {
     grid-template-columns: 1.05fr 0.95fr;
